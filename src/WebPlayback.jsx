@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { render } from 'react-dom';
-import { SayUtterance } from 'react-say';
-import Speech from 'react-speech';
 import Logout from './Logout';
 
 window.announcer = false;
@@ -16,17 +14,15 @@ function CallOutSong(toBeCalledOut) {
 function WebPlayback(props) {
 
     console.log(props.token);
-    if(!window.announcer)
-    {
+    if (!window.announcer) {
         console.log("Starting main");
         window.announcer = true;
         main(props.token);
     }
-    return <Logout/>;
+    return <Logout />;
 }
 
 async function main(access_tok) {
-
 
     fetch('https://api.spotify.com/v1/me/player/currently-playing', {
         method: 'GET',
@@ -39,7 +35,6 @@ async function main(access_tok) {
         .catch((err) => {
             console.log(err.message);
         });
-    
 }
 
 function readTrackInfo(trackInformation, access_tok) {
@@ -57,11 +52,16 @@ function readTrackInfo(trackInformation, access_tok) {
     var remaining = (duration - progress);
     var startTime = new Date();
 
+    console.log("prog: " + progress + " dur: " + duration);
+
     const trackData = "Now playing " + song + " by " + artist + " from " + album;
 
     if (!trackData) return;
     console.log(trackData);
 
+    if (remaining == 0) return;
+
+    /** TODO: Errors during transition when remaining/progress is 0 */
     if (progress < 5000) {
         console.log("Speaking");
         CallOutSong(trackData)
@@ -69,7 +69,7 @@ function readTrackInfo(trackInformation, access_tok) {
     else console.log("Not speaking");
     var endTime = new Date();
     var durationSpeaking = endTime - startTime;
-    var  nextCheckSong = remaining + 600 - durationSpeaking
+    var nextCheckSong = remaining + 1000 - durationSpeaking
     console.log("Next api ping in " + nextCheckSong)
     setTimeout(main, nextCheckSong, access_tok);
 }
@@ -79,4 +79,5 @@ export default WebPlayback
 
 /** TODO: Refresh tokens. Display text of currently playing + any errors 
  *  TODO: Ping API every min when no song playing
+ *  TODO: Secure handling of functions
 */
